@@ -1,0 +1,574 @@
+<!--  TODO -->
+<!-- DONE -- clear completed tasks button -->
+<!-- DONE -- clear completed tasks button needs to show up whenever there is a completed task -->
+<!-- DONE -- delete button to right of each task -->
+<!-- after roll is complete, popup? -->
+<!-- make an account to save your set up -->
+<!-- make it pretty -->
+<!-- DONE -- enter button functionality -->
+<!-- themes -->
+<!-- different screen sizes -->
+
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Micro Break Chooser</title>
+  <!-- Add Bootstrap CSS -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+  <style>
+    body {
+      --colour-one: #FFEDE1;
+      --colour-two: #7e6b8f69;
+      --colour-three: #D7F9FF;
+      --colour-four: #AFCBFF;
+      --colour-five: #2364AA;
+      background-color: var(--colour-three);
+    }
+
+    .completed {
+      text-decoration: line-through;
+    }
+
+    .delete-button {
+      color: red;
+      cursor: pointer;
+      text-align: right;
+    }
+
+    .garbage-icon {
+      cursor: pointer;
+    }
+
+    .quickadd {
+      min-width: 250px;
+      max-width: 400px;
+    }
+
+    #quickAddList {
+      background-color: var(--colour-four);
+    }
+
+    .final-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      background-color: var(--colour-four);
+      height: 200px;
+    }
+
+    .button-row {
+      display: flex;
+      gap: 10px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1 class="text-center my-5">MICRO BREAK CHOOSER</h1>
+    <p class="text-center mb-5">Sometimes, you just need a little micro break from work or studying to do something
+      else. The Micro Break Chooser is a convenient online platform designed to optimize your short moments of respite
+      during work. Taking small, regular breaks from working is important to enhance productivity and
+      well-being! With the Micro Break Chooser, you can bid farewell to decision fatigue and let the platform select
+      quick tasks for you, allowing you to return to your work refreshed and ready to tackle new challenges.</p>
+    <p class="text-center mb-5">Add items to your task list, then, when you're in need of a brain reset, click the Roll
+      for Task button! </p>
+
+    <div class="row">
+      <div class="col-2 sidebar quickadd text-center">
+        <!-- Quick Add Section -->
+        <h2>Quick Add</h2>
+        <button id="editQuickAddBtn" class="btn btn-primary mb-2">Edit Quick Add</button>
+        <!-- Quick Add Input Box -->
+        <div id="editAdd">
+          <li id="quickAddInputItem" class="list-group-item d-flex justify-content-between align-items-center">
+            <input id="quickAddInput" type="text" class="form-control" placeholder="Enter an item">
+            <button id="addToQuickAddBtn" class="btn btn-primary btn-sm ml-2">Add Quick item</button>
+          </li>
+        </div>
+        <!-- Quick add list items -->
+        <ul id="quickAddList" class="list-group"></ul>
+      </div>
+
+      <div class="col">
+        <div class="row mb-5">
+          <div class="col">
+            <!-- Add Items Box -->
+            <h2>Add Items</h2>
+            <div class="input-group">
+              <input id="itemInput" type="text" class="form-control" placeholder="Enter an item">
+              <div class="input-group-append">
+                <button id="addItemBtn" class="btn btn-primary" type="button">Add to List</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col">
+            <!-- Task List -->
+            <h2>Task List</h2>
+            <ul id="itemsList" class="list-group"></ul>
+            <button id="clearCompletedBtn" class="btn btn-danger mt-2 ml-auto" style="display: none;">Clear Completed
+              Tasks</button>
+            <ul id="completedList" class="list-group my-1"></ul>
+          </div>
+
+
+          <!-- Results Spinner -->
+          <div class="col text-center">
+            <button class="chooseBtn btn btn-primary my-1">Roll for Task</button>
+            <div class="final-item">
+              <h3 class="my-auto" id="finalItem"></h3>
+              <!-- <div id="timerContainer" class="text-center">
+                <h4 id="timerDisplay">03:00</h4>
+              </div> -->
+              <div class="button-row mb-2">
+                <!-- <button class="btn btn-primary set-timer-btn">Set Timer</button> -->
+                <button class="btn btn-success done-btn">Done!</button>
+                <button class="btn btn-primary reroll-btn chooseBtn">Re-Roll</button>
+              </div>
+            </div>
+            <div class="items-completed-counter my-5">
+              <h2>Items Completed:</h2>
+              <h3 id="items-complete-count"></h3>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Add Bootstrap JS and jQuery -->
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+
+  <script>
+
+    //----------------------------------------------//
+    // -------------------ARRAYS--------------------//
+    //----------------------------------------------//
+
+    // Store added items
+    let items = [];
+
+    // Store completed items
+    let completedItems = [];
+
+
+    //----------------------------------------------//
+    // ------------CREATE ELEMENTS------------------//
+    //----------------------------------------------//
+
+
+    // Create list item element
+    function createListItem(item) {
+      const itemElement = document.createElement("li");
+      itemElement.className = "list-group-item";
+      return itemElement;
+    }
+
+    // Create checkbox element
+    function createCheckbox() {
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.className = "mr-2";
+      return checkbox;
+    }
+
+    // Create text span element
+    function createTextSpan(item) {
+      const textSpan = document.createElement("span");
+      textSpan.textContent = item;
+      return textSpan;
+    }
+
+    // Create delete button element
+    function createDeleteButton(item, itemElement) {
+      const deleteButton = document.createElement("span");
+      deleteButton.className = "delete-button ml-auto";
+      deleteButton.textContent = "X";
+      deleteButton.addEventListener("click", function () {
+        removeItemFromList(item, itemElement);
+      });
+      return deleteButton;
+    }
+
+    // Create item content wrapper element
+    function createItemContentWrapper() {
+      const itemContentWrapper = document.createElement("div");
+      itemContentWrapper.className = "d-flex justify-content-between align-items-center";
+      return itemContentWrapper;
+    }
+
+
+    //-------------------------------------------//
+    // ---------------TASK LIST -----------------//
+    //-------------------------------------------//
+
+
+    // Add item to list
+    function addItemToList(item) {
+      items.push(item);
+
+      const itemElement = createListItem(item);
+
+      const checkbox = createCheckbox();
+      checkbox.addEventListener("click", function () {
+        moveItemToCompleted(item, itemElement);
+      });
+
+      const textSpan = createTextSpan(item);
+
+      const deleteButton = createDeleteButton(item, itemElement);
+
+      const itemContentWrapper = createItemContentWrapper();
+      itemContentWrapper.appendChild(checkbox);
+      itemContentWrapper.appendChild(textSpan);
+      itemContentWrapper.appendChild(deleteButton);
+
+      itemElement.appendChild(itemContentWrapper);
+
+      document.getElementById("itemsList").appendChild(itemElement);
+    }
+
+    // Remove item from list
+    function removeItemFromList(item, itemElement) {
+      const index = items.indexOf(item);
+      if (index !== -1) {
+        items.splice(index, 1);
+        document.getElementById("itemsList").removeChild(itemElement);
+      }
+    }
+
+    // Add item to list when "Add to List" button is clicked
+    document.getElementById("addItemBtn").addEventListener("click", function () {
+      const itemInput = document.getElementById("itemInput");
+      const item = itemInput.value.trim();
+
+      if (item !== "") {
+        addItemToList(item);
+        itemInput.value = "";
+        removeItemFromQuickAdd(item);
+      }
+    });
+
+    // Add item to list when Enter button is clicked
+    document.getElementById("itemInput").addEventListener("keypress", function () {
+      const itemInput = document.getElementById("itemInput");
+      const item = itemInput.value.trim();
+      if (event.key === "Enter") {
+        if (item !== "") {
+          addItemToList(item);
+          itemInput.value = "";
+          removeItemFromQuickAdd(item);
+        }
+      }
+
+    });
+
+
+    //-------------------------------------------//
+    // ------------ROLL BUTTON ------------------//
+    //-------------------------------------------//
+
+
+    // Choose One button click event
+    const chooseButtons = document.getElementsByClassName("chooseBtn");
+    for (let i = 0; i < chooseButtons.length; i++) {
+      chooseButtons[i].addEventListener("click", function () {
+        const finalItemElement = document.getElementById("finalItem");
+
+        if (items.length > 0) {
+          let count = 0;
+          const interval = setInterval(function () {
+            const randomIndex = Math.floor(Math.random() * items.length);
+            finalItemElement.textContent = items[randomIndex];
+
+            count++;
+            if (count === 10) {
+              clearInterval(interval);
+            }
+          }, 100);
+        } else {
+          finalItemElement.textContent = "Add items to your list!";
+        }
+      });
+    }
+
+
+
+    //-------------------------------------------------//
+    // ------------QUICK ADD SECTION ------------------//
+    //-------------------------------------------------//
+
+
+    // Initialize the Quick Add list
+    function initializeQuickAddList() {
+      const quickAddItems = ["3 Minute Walk", "Make Bed", "Wipe Desk", "Stretch", "Drink Water", "Water Plant", "Brush Teeth", "Clean Glasses", "Listen to a Song"];
+      const quickAddList = document.getElementById("quickAddList");
+
+      quickAddItems.forEach(function (item) {
+        const listItem = document.createElement("li");
+        listItem.className = "list-group-item d-flex justify-content-between align-items-center";
+        listItem.textContent = item;
+
+        const addButton = document.createElement("button");
+        addButton.className = "btn btn-primary btn-sm";
+        addButton.textContent = "+";
+        addButton.dataset.item = item;
+
+
+        const deleteButton = document.createElement("span");
+        deleteButton.className = "delete-button ml-2";
+        deleteButton.innerHTML = "&#128465;";
+        deleteButton.addEventListener("click", function () {
+          removeItemFromQuickAdd(item, listItem);
+        });
+
+        listItem.appendChild(addButton);
+        listItem.appendChild(deleteButton);
+        quickAddList.appendChild(listItem);
+      });
+
+      // Start with delete button and add input invisible
+      toggleDeleteButtonsVisibility()
+      toggleAddToQuickAddVisibility()
+    }
+
+    // Call initializeQuickAddList to populate Quick Add list on page load
+    initializeQuickAddList();
+
+
+    // Remove item from Quick Add
+    function removeItemFromQuickAdd(item, listItem) {
+      document.getElementById("quickAddList").removeChild(listItem);
+    }
+
+    // Quick add button click event
+    document.getElementById("quickAddList").addEventListener("click", function (event) {
+      if (event.target.tagName === "BUTTON") {
+        const item = event.target.dataset.item;
+        addItemToList(item);
+        removeItemFromQuickAdd(item);
+      }
+    });
+
+    // Add item to Quick Add
+    function addToQuickAdd() {
+      const quickAddInput = document.getElementById("quickAddInput");
+      const item = quickAddInput.value.trim();
+
+      if (item !== "") {
+        const listItem = document.createElement("li");
+        listItem.className = "list-group-item d-flex justify-content-between align-items-center";
+        listItem.textContent = item;
+
+        const addButton = document.createElement("button");
+        addButton.className = "btn btn-primary btn-sm";
+        addButton.textContent = "+";
+        addButton.dataset.item = item;
+        listItem.appendChild(addButton);
+
+        const deleteButton = document.createElement("span");
+        deleteButton.className = "delete-button ml-2";
+        deleteButton.innerHTML = "&#128465;";
+        deleteButton.addEventListener("click", function () {
+          removeItemFromQuickAdd(item, listItem);
+        });
+
+        listItem.appendChild(deleteButton);
+        document.getElementById("quickAddList").appendChild(listItem);
+
+        quickAddInput.value = "";
+      }
+    }
+
+    // Toggle delete buttons visibility
+    function toggleDeleteButtonsVisibility() {
+      const deleteButtons = document.getElementsByClassName("delete-button");
+      for (let i = 0; i < deleteButtons.length; i++) {
+        deleteButtons[i].style.display = deleteButtons[i].style.display === "none" ? "inline" : "none";
+      }
+    }
+
+    // Toggle add to quick add visibility
+    function toggleAddToQuickAddVisibility() {
+      const addToQuickAdd = document.getElementById("editAdd");
+      if (addToQuickAdd.style.display === "none") {
+        addToQuickAdd.style.display = "block";
+      } else {
+        addToQuickAdd.style.display = "none";
+      }
+      console.log("visible");
+    }
+
+
+    // Edit Quick Add button click event
+    document.getElementById("editQuickAddBtn").addEventListener("click", function () {
+      var editQuickAddBtn = document.getElementById("editQuickAddBtn");
+
+      if (editQuickAddBtn.innerHTML === 'Edit Quick Add') {
+        editQuickAddBtn.innerHTML = 'Done Editing';
+        editQuickAddBtn.style.backgroundColor = 'red';
+      } else {
+        editQuickAddBtn.innerHTML = 'Edit Quick Add';
+        editQuickAddBtn.style.backgroundColor = ''; // Reset background color
+      }
+      toggleDeleteButtonsVisibility();
+      toggleAddToQuickAddVisibility();
+    });
+
+
+
+    // Add to Quick Add button click event
+    document.getElementById("addToQuickAddBtn").addEventListener("click", function () {
+      addToQuickAdd();
+    });
+
+
+
+
+    //--------------------------------------------------------//
+    //------------COMPLETED TASKS SECTION -------------------//
+    //------------------------------------------------------//
+
+    let completeCount = 0;
+
+    // Move item to completed list
+    function moveItemToCompleted(item, itemElement) {
+      const index = items.indexOf(item);
+      if (index !== -1) {
+        items.splice(index, 1);
+        completedItems.push(item);
+
+        itemElement.classList.add("completed");
+        document.getElementById("itemsList").removeChild(itemElement);
+
+        const completedItemElement = createListItem(item);
+        completedItemElement.classList.add("completed");
+        completedItemElement.textContent = item;
+
+        document.getElementById("completedList").appendChild(completedItemElement);
+
+        toggleClearCompletedButton();
+      }
+      completeCount += 1;
+      console.log(completeCount)
+      document.getElementById("items-complete-count").innerHTML = completeCount;
+    }
+    // Clear completed tasks
+    function clearCompletedTasks() {
+      completedItems = [];
+      document.getElementById("completedList").innerHTML = "";
+      toggleClearCompletedButton();
+    }
+
+    // Toggle visibility of clear completed tasks button
+    function toggleClearCompletedButton() {
+      const clearCompletedBtn = document.getElementById("clearCompletedBtn");
+      if (completedItems.length > 0) {
+        clearCompletedBtn.style.display = "block";
+      } else {
+        clearCompletedBtn.style.display = "none";
+      }
+    }
+
+    // Clear completed tasks button click event
+    document.getElementById("clearCompletedBtn").addEventListener("click", function () {
+      clearCompletedTasks();
+    });
+
+    // Update clear completed tasks button visibility
+    function updateClearCompletedButtonVisibility() {
+      const clearCompletedBtn = document.getElementById("clearCompletedBtn");
+      if (completedItems.length > 0) {
+        clearCompletedBtn.style.display = "block";
+      } else {
+        clearCompletedBtn.style.display = "none";
+      }
+    }
+
+    //--------------------------------------------------------//
+    //--------------------DONE BUTTON------------------------//
+    //------------------------------------------------------//
+
+    // Done button click event
+    document.querySelector(".done-btn").addEventListener("click", function () {
+      const finalItemElement = document.getElementById("finalItem");
+      console.log(finalItemElement)
+      const currentItem = finalItemElement.textContent;
+      console.log(currentItem)
+      const itemElements = document.querySelectorAll("#itemsList li:not(.completed)");
+      let itemElement = null;
+
+      for (let i = 0; i < itemElements.length; i++) {
+        const itemText = itemElements[i].querySelector("span").textContent;
+        if (itemText === currentItem) {
+          itemElement = itemElements[i];
+          break;
+        }
+      }
+
+      if (itemElement) {
+        moveItemToCompleted(currentItem, itemElement);
+        finalItemElement.textContent = "";
+      }
+
+    });
+
+
+    //--------------------------------------------------------//
+    //--------------------------TIMER------------------------//
+    //------------------------------------------------------//
+
+
+    // // Timer button click event
+    // document.querySelector(".set-timer-btn").addEventListener("click", function () {
+    //   const timerContainer = document.getElementById("timerContainer");
+    //   const timerDisplay = document.getElementById("timerDisplay");
+
+    //   // Set initial timer value to 3 minutes (180 seconds)
+    //   let timerValue = 180;
+
+    //   // Function to update the timer display
+    //   function updateTimerDisplay() {
+    //     const minutes = Math.floor(timerValue / 60).toString().padStart(2, "0");
+    //     const seconds = (timerValue % 60).toString().padStart(2, "0");
+    //     timerDisplay.textContent = `${minutes}:${seconds}`;
+    //   }
+
+    //   // Function to start the timer
+    //   function startTimer() {
+    //     updateTimerDisplay();
+
+    //     // Interval function to decrement the timer value every second
+    //     const interval = setInterval(function () {
+    //       timerValue--;
+
+    //       if (timerValue >= 0) {
+    //         updateTimerDisplay();
+    //       } else {
+    //         clearInterval(interval);
+    //         // Timer has reached 0, perform any necessary actions here
+    //         console.log("Timer completed!");
+    //       }
+    //     }, 1000);
+    //   }
+
+    //   // Start the timer
+    //   startTimer();
+
+    //   // Make the timer container visible
+    //   timerContainer.style.display = "block";
+    // });
+
+
+  </script>
+</body>
+
+</html>
