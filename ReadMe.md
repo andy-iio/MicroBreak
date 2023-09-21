@@ -5,6 +5,7 @@ Micro Break Chooser is a web application designed to optimize the short breaks y
 Visit the site: [Micro Break Chooser](https://andy-iio.github.io/MicroBreak/)
 
 ## Features
+<img width="850" alt="MicroBreak" src="https://github.com/andy-iio/MicroBreak/assets/32138242/4b150d20-034f-4123-b852-c38c9834b6cc">
 
 ### Quick Add Section
 
@@ -33,7 +34,5 @@ Micro Break Chooser is built using the following technologies and languages:
 - HTML
 - CSS (Bootstrap)
 - JavaScript
-
-<img width="850" alt="MicroBreak" src="https://github.com/andy-iio/MicroBreak/assets/32138242/4b150d20-034f-4123-b852-c38c9834b6cc">
 
 If you have any questions, suggestions, or feedback, please don't hesitate to reach out.
